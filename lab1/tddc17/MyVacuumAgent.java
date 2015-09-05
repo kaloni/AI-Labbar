@@ -13,16 +13,16 @@ class MyAgentState
 {
 	public int[][] world = new int[30][30];
 	public int initialized = 0;
-	final int UNKNOWN 	= 0;
-	final int WALL 		= 1;
-	final int CLEAR 	= 2;
-	final int DIRT		= 3;
-	final int HOME		= 4;
-	final int ACTION_NONE 			= 0;
-	final int ACTION_MOVE_FORWARD 	= 1;
-	final int ACTION_TURN_RIGHT 	= 2;
-	final int ACTION_TURN_LEFT 		= 3;
-	final int ACTION_SUCK	 		= 4;
+	public static final int UNKNOWN 	= 0;
+	public static final int WALL 		= 1;
+	public static final int CLEAR 	= 2;
+	public static final int DIRT		= 3;
+	public static final int HOME		= 4;
+	public static final int ACTION_NONE 			= 0;
+	public static final int ACTION_MOVE_FORWARD 	= 1;
+	public static final int ACTION_TURN_RIGHT 	= 2;
+	public static final int ACTION_TURN_LEFT 		= 3;
+	public static final int ACTION_SUCK	 		= 4;
 
 	public int agent_x_position = 1;
 	public int agent_y_position = 1;
@@ -36,7 +36,10 @@ class MyAgentState
 
 	boolean reachedFirstBump = false;
 	boolean reachedCorner = false;
-	public int timeToTurn = 0;
+	public int turnAction = 0;
+    public int turnCounter = 0;
+    boolean cleanedMap = false;
+    int mapX, mapY;
 
 	MyAgentState()
 	{
@@ -75,6 +78,14 @@ class MyAgentState
 	{
 		world[x_position][y_position] = info;
 	}
+    
+    boolean rowClean(int row) {
+        boolean clean = true;
+        for(int i = 2; i < mapX; ++i) {
+            clean = clean && (world[i][row] == MyAgentState.CLEAR);
+        }
+        return clean;
+    }
 
 	public void printWorldDebug()
 	{
@@ -104,14 +115,13 @@ class MyAgentProgram implements AgentProgram {
 	private Random random_generator = new Random();
 
 	// Here you can define your variables!
-	public int iterationCounter = 100;
+	public int iterationCounter = 100000;
 	public MyAgentState state = new MyAgentState();
 
 	// moves the Agent to a random start position
 	// uses percepts to update the Agent position - only the position, other percepts are ignored
 	// returns a random action
-	private Action moveT
-	oRandomStartPosition(DynamicPercept percept) {
+	private Action moveToRandomStartPosition(DynamicPercept percept) {
 		int action = random_generator.nextInt(6);
 		initnialRandomActions--;
 		state.updatePosition(percept);
@@ -129,7 +139,6 @@ class MyAgentProgram implements AgentProgram {
 		state.agent_last_action=state.ACTION_MOVE_FORWARD;
 		return LIUVacuumEnvironment.ACTION_MOVE_FORWARD;
 	}
-
 
 	@Override
 	public Action execute(Percept percept) {
@@ -153,6 +162,7 @@ class MyAgentProgram implements AgentProgram {
 		// START HERE - code below should be modified!
 
 		iterationCounter--;
+        state.turnCounter--;
 
 		if (iterationCounter==0) {
 			System.out.println("out of iterations!");
@@ -160,8 +170,7 @@ class MyAgentProgram implements AgentProgram {
 		}
 
 		DynamicPercept p = (DynamicPercept) percept;
-		Boolean bump = (Bo
-				olean)p.getAttribute("bump");
+		Boolean bump = (Boolean)p.getAttribute("bump");
 		Boolean dirt = (Boolean)p.getAttribute("dirt");
 		Boolean home = (Boolean)p.getAttribute("home");
 		System.out.println("percept: " + p);
@@ -172,8 +181,8 @@ class MyAgentProgram implements AgentProgram {
 		System.out.println("x=" + state.agent_x_position);
 		System.out.println("y=" + state.agent_y_position);
 		System.out.println("dir=" + state.agent_direction);
-
-
+        
+        
 		if (bump) {
 			switch (state.agent_direction) {
 			case MyAgentState.NORTH:
@@ -242,6 +251,8 @@ class MyAgentProgram implements AgentProgram {
 			if( bump ) {
 				System.out.println("Bumped corner!");
 				state.reachedCorner = true;
+                state.mapX = state.agent_x_position;
+                state.mapY = state.agent_y_position;
 				state.agent_direction = ((state.agent_direction+1) % 4);
 				state.agent_last_action = state.ACTION_TURN_RIGHT;
 				return LIUVacuumEnvironment.ACTION_TURN_RIGHT;
@@ -255,49 +266,62 @@ class MyAgentProgram implements AgentProgram {
 		{
 			System.out.println("DIRT -> choosing SUCK action!");
 			state.agent_last_action=state.ACTION_SUCK;
+            state.turnCounter++;
 			return LIUVacuumEnvironment.ACTION_SUCK;
 		} 
 		else
 		{
 			if (bump)
 			{
+                
+                if( home && state.reachedCorner ) {
+                    if( state.rowClean(1) ) {
+                        System.out.println("home ok");
+                        return NoOpAction.NO_OP;
+                    }
+                }
+                
 				System.out.println("bumped into something!!!");
-				if state.agent_direction == myAgentState.WEST {
+                state.turnCounter = 2;
+				if( state.agent_direction == MyAgentState.WEST ) {
 					state.agent_direction = ((state.agent_direction+1) % 4);
 					state.agent_last_action = state.ACTION_TURN_RIGHT;
-					timeToTurn = 2; //next move after forward move is right turn
+					state.turnAction = MyAgentState.ACTION_TURN_RIGHT; //next move after forward move is right turn
 					return LIUVacuumEnvironment.ACTION_TURN_RIGHT;
 
 				}
-				else if state.agent_direction == myAgentState.EAST {
+				else if( state.agent_direction == MyAgentState.EAST ) {
 					state.agent_direction = ((((state.agent_direction-1) % 4) + 4) % 4);
 					state.agent_last_action = state.ACTION_TURN_LEFT;
-					timeToTurn = 3; //next move after forward move is left turn
+                    state.turnAction = MyAgentState.ACTION_TURN_LEFT; //next move after forward move is left turn
 					return LIUVacuumEnvironment.ACTION_TURN_LEFT;
 				}
+                else if( state.agent_direction == MyAgentState.NORTH ) {
+                    state.agent_direction = ((((state.agent_direction-1) % 4) + 4) % 4);
+                    state.agent_last_action = MyAgentState.NORTH;
+                    state.turnCounter = -1;
+                    return LIUVacuumEnvironment.ACTION_TURN_LEFT;
+                }
 				
 			}
 			else
 			{
-				if timeToTurn != 0 {
-					switch( timeToTurn ) {
-					case MyAgentState.ACTION_TURN_RIGHT: 
+				if( state.turnCounter == 0 ) {
+					switch( state.turnAction ) {
+					case MyAgentState.ACTION_TURN_RIGHT:
 						state.agent_direction = ((state.agent_direction+1) % 4);
 						state.agent_last_action = state.ACTION_TURN_RIGHT;
-						timeToTurn = 0;
+						//state.timeToTurn = 0;
 						return LIUVacuumEnvironment.ACTION_TURN_RIGHT;
 						
 					case MyAgentState.ACTION_TURN_LEFT:
 						state.agent_direction = ((((state.agent_direction-1) % 4) + 4) % 4);
 						state.agent_last_action = state.ACTION_TURN_LEFT;
-						timeToTurn = 0;
+						//state.timeToTurn = 0;
 						return LIUVacuumEnvironment.ACTION_TURN_LEFT;
 						
-						default System.Out.println("something went wrong with timeToTurn")
-						
-						
+                        default: System.out.println("something went wrong with timeToTurn");
 					}
-					
 
 				}
 				else {
@@ -306,12 +330,17 @@ class MyAgentProgram implements AgentProgram {
 					return LIUVacuumEnvironment.ACTION_MOVE_FORWARD;
 				}
 
-			}
-		}
-	}
+            }
+        }
+        
+        
+        return NoOpAction.NO_OP;
+    }
 
 	public class MyVacuumAgent extends AbstractAgent {
 		public MyVacuumAgent() {
 			super(new MyAgentProgram());
-		}
+        }
 	}
+}
+
