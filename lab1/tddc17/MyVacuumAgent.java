@@ -34,6 +34,8 @@ class MyAgentState
 	public static final int WEST = 3;
 	public int agent_direction = EAST;
 
+    
+    // added state variables
 	boolean reachedFirstBump = false;
 	boolean reachedCorner = false;
 	public int turnAction = 0;
@@ -207,6 +209,7 @@ class MyAgentProgram implements AgentProgram {
 		state.printWorldDebug();
 
 
+        // Look for EAST wall
 		if( ! state.reachedFirstBump ) {
 
 			System.out.println("Looking for east wall");
@@ -245,6 +248,7 @@ class MyAgentProgram implements AgentProgram {
 				 */
 			}
 		}
+        // Look for SOUTH-EAST corner
 		else if( ! state.reachedCorner ) {
 
 			System.out.println("Looking for corner");
@@ -259,8 +263,6 @@ class MyAgentProgram implements AgentProgram {
 			}
 		}
 
-
-
 		// Next action selection based on the percept value
 		if (dirt)
 		{
@@ -273,7 +275,7 @@ class MyAgentProgram implements AgentProgram {
 		{
 			if (bump)
 			{
-                
+                // Checked if map is cleaned
                 if( home && state.reachedCorner ) {
                     if( state.rowClean(1) ) {
                         System.out.println("home ok");
@@ -281,6 +283,9 @@ class MyAgentProgram implements AgentProgram {
                     }
                 }
                 
+                // If bumping into something, return action dependent on direction of the agent
+                // Set the turnCounter variable = 2, which is decremented at each loop so agent knows when to make next turn
+                // Set turnAction state variable so agent remembers what type of action to take at next turn
 				System.out.println("bumped into something!!!");
                 state.turnCounter = 2;
 				if( state.agent_direction == MyAgentState.WEST ) {
@@ -306,6 +311,7 @@ class MyAgentProgram implements AgentProgram {
 			}
 			else
 			{
+                // If its time to make the turn, check the turnAction state variable and act according to that
 				if( state.turnCounter == 0 ) {
 					switch( state.turnAction ) {
 					case MyAgentState.ACTION_TURN_RIGHT:
@@ -320,10 +326,11 @@ class MyAgentProgram implements AgentProgram {
 						//state.timeToTurn = 0;
 						return LIUVacuumEnvironment.ACTION_TURN_LEFT;
 						
-                        default: System.out.println("something went wrong with timeToTurn");
+                        default: System.out.println("something went wrong during turn");
 					}
 
 				}
+                // No bumps, no turn actions, just keep on moving straight forward
 				else {
 					System.out.println("Movin foward as usual!");
 					state.agent_last_action=state.ACTION_MOVE_FORWARD;
@@ -332,7 +339,6 @@ class MyAgentProgram implements AgentProgram {
 
             }
         }
-        
         
         return NoOpAction.NO_OP;
     }
