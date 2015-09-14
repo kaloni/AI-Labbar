@@ -1,0 +1,47 @@
+Artificial Intelligence, TDDC17
+Lab1
+Carl Dehlin
+Benjamin Lind
+
+Our agent has 10⁵ iterations before it gives up on its quest to search the whole map and find its way home. This is an arbitrary large number chosen to make sure that the agent does not get stuck but not so low that the agent runs out of iterations before the task is finished.
+
+The loop:
+
+	Percepts are perceived from the world, and so the agent knows if it has bumped into a wall, is close enough to dirt to suck it, or if the agent has reached its home.
+
+	If the agent perceived a bump, the knowledge of the world is updated accordingly. If the agent is facing north, place a wall on the square to the north, if the agent is facing east, plae a wall on the square to the east, etc.
+
+	If dirt is perceived, update the agent's knowledge of the world with dirt in the square it is occupying. Now, the world as the agent knows it is printed for the user to see. This will show where the agent believes walls, dirt, 		and clean squares to be. The unexplored squares are represented by "?".
+
+The three sections above are part of process in which the knowledge of the world is updated. Below follows and explanation of how the agent completes its mission.
+
+Look for southeastern corner of the map
+
+	If the eastern wall is not yet reached, and no bump was perceived, then the agent will orient itself to face east. If the agent is facing east, move forward until it bumps into the wall. When the wall is found, the agent orients 		itself to the south and moves forward until the southeastern corner is found. 
+
+Zig-zag home
+	If dirt is found, the agents sucks it up. If the agent bumped into a wall, it will check to see if it is home and also if it has cleared the whole map from dirt. If the mission is not completed, the agent wants to make a turn, 		go forward one step and then make another turn in the previous direction. A variable is used here, which is set when the bump is detected and decremented with 1 for every iteration. This is to help the agent remember that is 		turned and wants to continue turning once more after the step forward along the edge of the wall.
+
+	If the agent bumps into the northern wall, it will always do that in the northeastern corner. This is due to the zig-zag movement which will take the agent home without colliding with the northern wall, or colliding in the 		northeastern corner.	
+
+	If there was no bump or dirt, and the agent does not remember to turn, then it will continue straight.
+	
+That concludes the behaviour of the intelligente vacuum cleaner.
+	
+	
+Reason for designing this algorithm
+
+	This was a simple solution which would always work, given that the map was clear from obstacles. By letting the agent bump into the walls, we did not use the fact that the agent had access to its position. More knowledge about 		the map could have been utilized so that the agent would not need to bump into the wall every time it reached one. After one bump to the east and one bump to the west the agent had the possibility to know the size of the map and 		then make the decision to turn when the edge of a wall was reached by checking the position of the occupied square. 
+	
+Variables were added to know:
+	if first (east) wall was reached
+	if second (south) wall was reached, southeastern corner.
+	which way to turn after a forward move after a bump on the way home
+	when to turn after a bump on the way home
+	if the map is cleared of dirt
+	size of the map 
+
+
+
+
+	

@@ -15,33 +15,33 @@ class MyAgentState
 	public int initialized = 0;
 	public static final int UNKNOWN 	= 0;
 	public static final int WALL 		= 1;
-	public static final int CLEAR 	= 2;
+	public static final int CLEAR 		= 2;
 	public static final int DIRT		= 3;
 	public static final int HOME		= 4;
-	public static final int ACTION_NONE 			= 0;
+	public static final int ACTION_NONE 		= 0;
 	public static final int ACTION_MOVE_FORWARD 	= 1;
 	public static final int ACTION_TURN_RIGHT 	= 2;
-	public static final int ACTION_TURN_LEFT 		= 3;
-	public static final int ACTION_SUCK	 		= 4;
+	public static final int ACTION_TURN_LEFT 	= 3;
+	public static final int ACTION_SUCK	 	= 4;
 
 	public int agent_x_position = 1;
 	public int agent_y_position = 1;
 	public int agent_last_action = ACTION_NONE;
 
 	public static final int NORTH = 0;
-	public static final int EAST = 1;
+	public static final int EAST  = 1;
 	public static final int SOUTH = 2;
-	public static final int WEST = 3;
+	public static final int WEST  = 3;
 	public int agent_direction = EAST;
 
     
     // added state variables
 	boolean reachedFirstBump = false;
-	boolean reachedCorner = false;
-	public int turnAction = 0;
-    public int turnCounter = 0;
-    boolean cleanedMap = false;
-    int mapX, mapY;
+	boolean reachedCorner	 = false;
+	public int turnAction	 = 0;
+  	public int turnCounter	 = 0;
+        boolean cleanedMap 	 = false;
+        int mapX, mapY;
 
 	MyAgentState()
 	{
@@ -164,7 +164,7 @@ class MyAgentProgram implements AgentProgram {
 		// START HERE - code below should be modified!
 
 		iterationCounter--;
-        state.turnCounter--;
+        	state.turnCounter--;
 
 		if (iterationCounter==0) {
 			System.out.println("out of iterations!");
@@ -255,8 +255,8 @@ class MyAgentProgram implements AgentProgram {
 			if( bump ) {
 				System.out.println("Bumped corner!");
 				state.reachedCorner = true;
-                state.mapX = state.agent_x_position;
-                state.mapY = state.agent_y_position;
+              		 	state.mapX = state.agent_x_position;
+              		        state.mapY = state.agent_y_position;
 				state.agent_direction = ((state.agent_direction+1) % 4);
 				state.agent_last_action = state.ACTION_TURN_RIGHT;
 				return LIUVacuumEnvironment.ACTION_TURN_RIGHT;
